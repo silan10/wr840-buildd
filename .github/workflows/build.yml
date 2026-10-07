@@ -3,6 +3,7 @@ on: workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     steps:
       - name: Free disk space
         run: |
@@ -39,17 +40,20 @@ jobs:
           # CONFIG_IB is not set
           # CONFIG_SDK is not set
           # CONFIG_MAKE_TOOLCHAIN is not set
+          CONFIG_PACKAGE_luci=y
           CONFIG_PACKAGE_kmod-usb-core=y
           CONFIG_PACKAGE_kmod-usb2=y
           CONFIG_PACKAGE_kmod-usb-ohci=y
           CONFIG_PACKAGE_kmod-usb-storage=y
           CONFIG_PACKAGE_kmod-fs-ext4=y
           CONFIG_PACKAGE_kmod-fs-vfat=y
-          CONFIG_PACKAGE_block-mount=y
+          CONFIG_PACKAGE_kmod-nls-cp437=y
+          CONFIG_PACKAGE_kmod-nls-iso8859-1=y
           CONFIG_PACKAGE_kmod-ath9k-htc=y
+          CONFIG_PACKAGE_block-mount=y
           EOF
           make defconfig
-          grep -E "DEVICE_tplink_tl-wr840n-v4|usb2|ath9k-htc" .config
+          grep -E "DEVICE_tplink_tl-wr840n-v4|PACKAGE_luci=|vfat|ath9k-htc|usb2" .config
 
       - name: Build
         run: |
