@@ -29,20 +29,39 @@ jobs:
           sed -i '/^&ohci {/,/^};/ s/"disabled"/"okay"/' $F
           grep -A2 -E "&ehci|&ohci" $F
 
-      - name: Official config
+      - name: Minimal config
         run: |
           cd openwrt
-          wget https://downloads.openwrt.org/releases/25.12.2/targets/ramips/mt76x8/config.buildinfo -O .config
-          echo "# CONFIG_IB is not set" >> .config
-          echo "# CONFIG_SDK is not set" >> .config
-          echo "# CONFIG_MAKE_TOOLCHAIN is not set" >> .config
+          cat << 'EOF' > .config
+          CONFIG_TARGET_ramips=y
+          CONFIG_TARGET_ramips_mt76x8=y
+          CONFIG_TARGET_ramips_mt76x8_DEVICE_tplink_tl-wr840n-v4=y
+          # CONFIG_IB is not set
+          # CONFIG_SDK is not set
+          # CONFIG_MAKE_TOOLCHAIN is not set
+          CONFIG_PACKAGE_kmod-usb-core=y
+          CONFIG_PACKAGE_kmod-usb2=y
+          CONFIG_PACKAGE_kmod-usb-ohci=y
+          CONFIG_PACKAGE_kmod-usb-storage=y
+          CONFIG_PACKAGE_kmod-fs-ext4=y
+          CONFIG_PACKAGE_kmod-fs-vfat=y
+          CONFIG_PACKAGE_block-mount=y
+          CONFIG_PACKAGE_kmod-ath9k-htc=y
+          EOF
           make defconfig
+          grep -E "DEVICE_tplink_tl-wr840n-v4|usb2|ath9k-htc" .config
 
       - name: Build
         run: |
           cd openwrt
           make download -j8
-          make -j$(nproc) || make -j1 V=s
+          make -j$(nproc)
+
+      - name: Show error details
+        if: failure()
+        run: |
+          cd openwrt
+          make -j1 V=s 2>&1 | tail -n 60
 
       - name: Upload image
         uses: actions/upload-artifact@v4
