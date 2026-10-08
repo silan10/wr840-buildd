@@ -31,9 +31,12 @@ jobs:
           grep -A2 -E "&ehci|&ohci" $F
 
       - name: Minimal config
+            - name: Official config, one device
         run: |
           cd openwrt
-          cat << 'EOF' > .config
+          wget https://downloads.openwrt.org/releases/25.12.2/targets/ramips/mt76x8/config.buildinfo -O .config
+          sed -i '/CONFIG_ALL=/d;/CONFIG_ALL_NONSHARED/d;/CONFIG_TARGET_MULTI_PROFILE/d;/CONFIG_TARGET_ALL_PROFILES/d;/CONFIG_TARGET_PER_DEVICE_ROOTFS/d;/_DEVICE_/d;/CONFIG_TARGET_DEVICE_/d' .config
+          cat << 'EOF' >> .config
           CONFIG_TARGET_ramips=y
           CONFIG_TARGET_ramips_mt76x8=y
           CONFIG_TARGET_ramips_mt76x8_DEVICE_tplink_tl-wr840n-v4=y
@@ -41,19 +44,9 @@ jobs:
           # CONFIG_SDK is not set
           # CONFIG_MAKE_TOOLCHAIN is not set
           CONFIG_PACKAGE_luci=y
-          CONFIG_PACKAGE_kmod-usb-core=y
-          CONFIG_PACKAGE_kmod-usb2=y
-          CONFIG_PACKAGE_kmod-usb-ohci=y
-          CONFIG_PACKAGE_kmod-usb-storage=y
-          CONFIG_PACKAGE_kmod-fs-ext4=y
-          CONFIG_PACKAGE_kmod-fs-vfat=y
-          CONFIG_PACKAGE_kmod-nls-cp437=y
-          CONFIG_PACKAGE_kmod-nls-iso8859-1=y
-          CONFIG_PACKAGE_kmod-ath9k-htc=y
-          CONFIG_PACKAGE_block-mount=y
           EOF
           make defconfig
-          grep -E "DEVICE_tplink_tl-wr840n-v4|PACKAGE_luci=|vfat|ath9k-htc|usb2" .config
+          grep -E "DEVICE_tplink_tl-wr840n-v4|PACKAGE_luci=|ALL_KMODS|CONFIG_ALL=" .config
 
       - name: Build
         run: |
