@@ -30,7 +30,7 @@ jobs:
           sed -i '/^&ohci {/,/^};/ s/"disabled"/"okay"/' $F
           grep -A2 -E "&ehci|&ohci" $F
 
-      - name: Official config, one device
+      - name: Official config
         run: |
           cd openwrt
           wget https://downloads.openwrt.org/releases/25.12.2/targets/ramips/mt76x8/config.buildinfo -O .config
